@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Práctica de Grafos</title>
+<style>
+:root{--bg:#f6f6f2;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--ac:#2f6f4f;--bd:#d9d9d2;--ok:#1f9d55;--er:#d64545;--ed:#555;--okbg:#cdeedb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161816;--card:#202320;--tx:#ecece6;--mu:#a0a09a;--ac:#5fc08f;--bd:#3a3d3a;--ed:#b5b5ae;--okbg:#1f4a33}}
+:root[data-theme="dark"]{--bg:#161816;--card:#202320;--tx:#ecece6;--mu:#a0a09a;--ac:#5fc08f;--bd:#3a3d3a;--ed:#b5b5ae;--okbg:#1f4a33}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0 0 4px}h3{margin:0 0 8px;font-size:16px}p.s{color:var(--mu);margin:0 0 12px}
+.tb{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+button,select,input{font:inherit;color:var(--tx)}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+.tb button{background:transparent;color:var(--tx);border:1px solid var(--bd)}.tb button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+select,input[type=text],input:not([type]){background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:5px 8px}
+.ctl{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;font-size:14px}
+.row{display:flex;gap:14px;flex-wrap:wrap}.row>.card{flex:1 1 380px;min-width:0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.gr{width:100%;height:auto;max-height:380px}
+.ed line{stroke:var(--ed);stroke-width:2}.ed text{fill:var(--tx);font-size:12px;font-weight:600;text-anchor:middle;paint-order:stroke;stroke:var(--card);stroke-width:4px}
+.ed.sel line{stroke:var(--ok);stroke-width:4.5}.ed.bad line{stroke:var(--er);stroke-width:4.5}.ed.hint line{stroke:#e0a800;stroke-width:4.5;stroke-dasharray:6 3}
+.ed line.hit{stroke:transparent;stroke-width:18;cursor:pointer}
+.nd circle{fill:var(--card);stroke:var(--ac);stroke-width:2}.nd text{fill:var(--tx);font-weight:700;text-anchor:middle;font-size:15px}
+.nd.in circle{fill:var(--okbg)}.nd.st circle{stroke-width:4}
+table{border-collapse:collapse;margin:6px 0}td,th{border:1px solid var(--bd);padding:2px;text-align:center}
+td input{width:34px;text-align:center;padding:4px 2px}th{padding:4px 9px;font-weight:600;background:var(--bg)}
+input.ok{border-color:var(--ok);background:var(--okbg)}input.er{border-color:var(--er)}
+.lr{display:flex;gap:8px;align-items:center;margin:5px 0}.lr b{width:20px}.lr input{flex:1}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.msg{margin-top:10px;padding:8px 12px;border-radius:8px;display:none}.msg.ok,.msg.er{display:block}
+.msg.ok{background:var(--okbg)}.msg.er{background:rgba(214,69,69,.15)}
+.chip{display:inline-block;border:1px solid var(--bd);border-radius:14px;padding:1px 9px;margin:2px;font-size:13px}
+.chip.s{background:var(--okbg);border-color:var(--ok)}.chip.c{text-decoration:line-through;color:var(--mu)}
+.mu{color:var(--mu);font-size:13px}
+.dr{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:4px 6px;border-radius:8px}.dr.ok{background:var(--okbg)}.dr.er{outline:1.5px solid var(--er)}
+.vb{width:38px;height:34px;border:2px solid var(--ac);border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.an{display:flex;border:1.5px solid var(--mu);border-radius:4px;background:var(--card)}.an input{width:34px;border:0;border-right:1.5px solid #e08a1e;border-radius:0;text-align:center;padding:5px 2px;background:transparent}.an input:last-child{border-right:0}
+.sv{padding-left:12px;margin:-2px 0}button.sm{padding:1px 9px}
+</style></head><body><div class="w">
+<h1>Práctica de grafos</h1><p class="s">Estructuras de datos · Cada ejercicio genera un grafo nuevo al azar.</p>
+<div class="tb"><button onclick="go(0)">1. Representación</button><button onclick="go(1)">2. Recorridos BFS / DFS</button><button onclick="go(2)">3. Prim</button><button onclick="go(3)">4. Kruskal</button></div>
+<div id="app"></div></div>
+<script>
+const L="ABCDEFGHIJ",R=n=>Math.floor(Math.random()*n),$=id=>document.getElementById(id);
+let tab=0;
+const cfg=[{n:6,dir:true,wt:true,mode:"mat"},{n:6,dir:false,type:"bfs"},{n:6},{n:6}],st=[];
+function gen(n,dir,wt){const e=[],has=new Set();
+const add=(a,b)=>{if(a==b)return;const k=Math.min(a,b)+"-"+Math.max(a,b);if(has.has(k))return;has.add(k);let u=a,v=b;if(dir?R(2):u>v)[u,v]=[v,u];e.push({u,v,w:wt?1+R(15):1})};
+for(let i=1;i<n;i++)add(i,R(i));let x=Math.floor(n/2)+R(3);while(x--)add(R(n),R(n));
+return{n,dir,wt,e}}
+function newEx(){const t=tab,c=cfg[t];
+if(t==0){const g=gen(c.n,c.dir,c.wt);st[0]={g,ch:Array.from({length:g.n},()=>[])}};
+if(t==1)st[1]={g:gen(c.n,c.dir,false),start:R(c.n)};
+if(t>1)st[t]={g:gen(c.n,false,true),start:R(c.n),sel:[],msg:null}}
+function go(t){tab=t;if(!st[t])newEx();render()}
+function cf(k,v){cfg[tab][k]=v;if(k!="mode"&&k!="type")newEx();render()}
+function say(h,ok){const m=$("msg");m.className="msg "+(ok?"ok":"er");m.innerHTML=h}
+function adj(g){const A=Array.from({length:g.n},()=>[]);g.e.forEach(e=>{A[e.u].push([e.v,e.w]);if(!g.dir)A[e.v].push([e.u,e.w])});A.forEach(a=>a.sort((x,y)=>x[0]-y[0]));return A}
+function svg(g,o={}){const P=i=>{const a=6.2832*i/g.n-1.5708;return[230+150*Math.cos(a),180+135*Math.sin(a)]};
+let s='<svg viewBox="0 0 460 360" class="gr"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--ed)"/></marker></defs>';
+g.e.forEach((e,i)=>{const[a,b]=P(e.u),[c,d]=P(e.v),l=Math.hypot(c-a,d-b),x=(c-a)/l,y=(d-b)/l,r=g.dir?22:19;
+const ln=`x1="${a+x*19}" y1="${b+y*19}" x2="${c-x*r}" y2="${d-y*r}"`;
+s+=`<g class="ed ${(o.cls&&o.cls[i])||""}" ${o.click?`onclick="${o.click}(${i})"`:""}><line ${ln} ${g.dir?'marker-end="url(#ar)"':""}/>${o.click?`<line class="hit" ${ln}/>`:""}${g.wt?`<text x="${(a+c)/2-y*12}" y="${(b+d)/2+x*12+4}">${e.w}</text>`:""}</g>`});
+for(let i=0;i<g.n;i++){const[x,y]=P(i);s+=`<g class="nd ${(o.nd&&o.nd[i])||""}"><circle cx="${x}" cy="${y}" r="18"/><text x="${x}" y="${y+5}">${L[i]}</text></g>`}
+return s+"</svg>"}
+function ctl(t){const c=cfg[t];let h='<div class="ctl"><label>Nodos <select onchange="cf(\'n\',+this.value)">'+[4,5,6,7,8,9,10].map(n=>`<option ${n==c.n?"selected":""}>${n}</option>`).join("")+"</select></label>";
+if(t<2)h+=`<label>Tipo <select onchange="cf('dir',this.value=='d')"><option value="d" ${c.dir?"selected":""}>Dirigido</option><option value="u" ${c.dir?"":"selected"}>No dirigido</option></select></label>`;
+if(t==0)h+=`<label><input type="checkbox" ${c.wt?"checked":""} onchange="cf('wt',this.checked)"> Con pesos</label><label>Representar como <select onchange="cf('mode',this.value)"><option value="mat" ${c.mode=="mat"?"selected":""}>Matriz de adyacencia</option><option value="lst" ${c.mode=="lst"?"selected":""}>Directorio de nodos (listas)</option></select></label>`;
+if(t==1)h+=`<label>Recorrido <select onchange="cf('type',this.value)"><option value="bfs" ${c.type=="bfs"?"selected":""}>Amplitud (BFS)</option><option value="dfs" ${c.type=="dfs"?"selected":""}>Profundidad (DFS)</option></select></label>`;
+return h+'<button class="sec" onclick="newEx();render()">↻ Nuevo grafo</button></div>'}
+function render(){document.querySelectorAll(".tb button").forEach((b,i)=>b.classList.toggle("on",i==tab));$("app").innerHTML=ctl(tab)+[v0,v1,v2,v3][tab]()}
+/* 1. Representación */
+function matExp(g){const M=Array.from({length:g.n},()=>Array(g.n).fill(0));g.e.forEach(e=>{M[e.u][e.v]=e.w;if(!g.dir)M[e.v][e.u]=e.w});return M}
+function v0(){const g=st[0].g,c=cfg[0];let f;
+if(c.mode=="mat"){f="<p>Completa la <b>matriz de adyacencia</b>"+(g.wt?" (pon el peso, 0 si no hay arista)":" (1 si hay arista, 0 si no)")+". Fila = origen, columna = destino.</p><table><tr><th></th>"+[...L.slice(0,g.n)].map(x=>`<th>${x}</th>`).join("")+"</tr>";
+for(let i=0;i<g.n;i++){f+=`<tr><th>${L[i]}</th>`;for(let j=0;j<g.n;j++)f+=`<td><input id="m${i}_${j}" inputmode="numeric"></td>`;f+="</tr>"}f+="</table>"}
+else f=dirHtml(g);
+return`<div class="row"><div class="card">${svg(g)}</div><div class="card"><h3>${c.mode=="mat"?"Matriz de adyacencia":"Directorio de nodos (listas)"}</h3>${f}<div class="btns"><button onclick="chk0()">Comprobar</button><button class="sec" onclick="sol0()">Ver solución</button></div><div id="msg" class="msg"></div></div></div>`}
+function dirHtml(g){const ch=st[0].ch;let f='<p>Arma el <b>directorio de nodos</b>: la columna de vértices (enlazados por <i>sigV</i>) y, para cada uno, su <i>subListaArcos</i>. Cada nodo de arco guarda el <b>destino</b>'+(g.wt?' y la <b>distancia</b>':'')+' y apunta al siguiente con <i>sigA</i>. Usa ＋ para agregar arcos, en orden alfabético.</p><div class="mu">grafo ⇒</div>';
+for(let i=0;i<g.n;i++){f+=`<div class="dr"><div class="vb">${L[i]}</div><span class="mu">subListaArcos →</span>`;
+ch[i].forEach((a,j)=>{f+=`<div class="an"><input value="${a.d}" maxlength="1" placeholder="dest" oninput="setA(${i},${j},'d',this.value)">${g.wt?`<input value="${a.w}" placeholder="dist" inputmode="numeric" oninput="setA(${i},${j},'w',this.value)">`:""}</div><span class="mu">sigA →</span>`});
+f+=`<span class="mu">∅</span><button class="sec sm" onclick="addA(${i})">＋</button><button class="sec sm" onclick="delA(${i})">−</button></div><div class="mu sv">↓ sigV${i==g.n-1?" = ∅":""}</div>`}return f}
+function setA(i,j,k,v){st[0].ch[i][j][k]=v}function addA(i){st[0].ch[i].push({d:"",w:""});render()}function delA(i){st[0].ch[i].pop();render()}
+function tok(g,s){return new Set([...s.toUpperCase().matchAll(/([A-Z])\s*[:(]?\s*(\d*)/g)].map(m=>m[1]+(g.wt?m[2]:"")))}
+function chk0(){const g=st[0].g;let bad=0;
+if(cfg[0].mode=="mat"){const M=matExp(g);for(let i=0;i<g.n;i++)for(let j=0;j<g.n;j++){const x=$(`m${i}_${j}`),v=x.value.trim()==""?0:+x.value,ok=v===M[i][j];x.className=ok?"ok":"er";if(!ok)bad++}}
+else{const A=adj(g),ch=st[0].ch,rows=document.querySelectorAll(".dr");let ord=0;for(let i=0;i<g.n;i++){const a=ch[i].map(x=>x.d.trim().toUpperCase()+(g.wt?x.w.trim():"")),b=A[i].map(([v,w])=>L[v]+(g.wt?w:"")),ok=a.length==b.length&&b.every(k=>a.includes(k));if(ok&&a.join()!=b.join())ord++;rows[i].className="dr "+(ok?"ok":"er");if(!ok)bad++}if(!bad&&ord)return say(`Todos los arcos están, pero en ${ord} lista(s) no van en orden alfabético.`,1)}
+bad?say(`Hay <b>${bad}</b> ${cfg[0].mode=="mat"?"celda(s)":"fila(s)"} incorrecta(s), marcadas en rojo. ${g.dir?"Recuerda: en un grafo dirigido solo cuentan las aristas que salen del nodo.":"Recuerda: en un grafo no dirigido la arista cuenta en ambos sentidos."}`,0):say("¡Perfecto! Todo correcto 🎉",1)}
+function sol0(){const g=st[0].g;if(cfg[0].mode=="mat"){const M=matExp(g);M.forEach((r,i)=>r.forEach((v,j)=>{const x=$(`m${i}_${j}`);x.value=v;x.className=""}))}
+else{st[0].ch=adj(g).map(a=>a.map(([v,w])=>({d:L[v],w:String(w)})));render()}}
+/* 2. Recorridos */
+function trav(g,s,t){const A=adj(g),seen=new Set([s]),out=[];
+if(t=="bfs"){const q=[s];while(q.length){const u=q.shift();out.push(u);A[u].forEach(([v])=>{if(!seen.has(v)){seen.add(v);q.push(v)}})}}
+else{const d=u=>{seen.add(u);out.push(u);A[u].forEach(([v])=>{if(!seen.has(v))d(v)})};d(s)}return out}
+function v1(){const{g,start}=st[1],c=cfg[1],A=adj(g);
+const lst=A.map((a,i)=>`<div class="mu"><b>${L[i]}</b> → ${a.map(x=>L[x[0]]).join(", ")||"—"}</div>`).join("");
+return`<div class="row"><div class="card">${svg(g)}</div><div class="card"><h3>${c.type=="bfs"?"Recorrido en amplitud (BFS)":"Recorrido en profundidad (DFS)"}</h3><p>Empieza en el nodo <b>${L[start]}</b>. Cuando haya varios vecinos, visita primero el de menor letra. Escribe el orden de visita separado por comas.</p><input id="tr" style="width:100%" placeholder="A, B, C, …" autocomplete="off"><details style="margin-top:8px"><summary class="mu">Ver lista de adyacencia (ayuda)</summary>${lst}</details><div class="btns"><button onclick="chk1()">Comprobar</button><button class="sec" onclick="sol1()">Ver solución</button></div><div id="msg" class="msg"></div>${g.dir?'<p class="mu">En un grafo dirigido solo se visitan los nodos alcanzables desde el inicio.</p>':""}</div></div>`}
+function chk1(){const{g,start}=st[1],ex=trav(g,start,cfg[1].type).map(i=>L[i]),u=[...$("tr").value.toUpperCase().matchAll(/[A-Z]/g)].map(m=>m[0]);
+if(u.join()==ex.join())return say("¡Correcto! Orden: "+ex.join(" → ")+" 🎉",1);
+let k=0;while(k<u.length&&k<ex.length&&u[k]==ex[k])k++;
+say(k>=ex.length?"Visitaste nodos de más: el recorrido termina en la posición "+ex.length+".":k>=u.length?`Va bien hasta ahora (${k} correctos) pero faltan nodos por visitar.`:`Los primeros ${k} nodos están bien; el error está en la posición ${k+1}.`+(cfg[1].type=="bfs"?" Piensa en la cola: ¿qué nodo se encoló primero?":" Piensa en la pila: baja lo más profundo posible antes de retroceder."),0)}
+function sol1(){const{g,start}=st[1];$("tr").value=trav(g,start,cfg[1].type).map(i=>L[i]).join(", ")}
+/* 3 y 4. Prim y Kruskal */
+const find=(p,x)=>p[x]==x?x:p[x]=find(p,p[x]);
+function cand(t){const s=st[t],g=s.g,vis=new Set(),p=[...Array(g.n).keys()];
+s.sel.forEach(i=>{const e=g.e[i];vis.add(e.u);vis.add(e.v);p[find(p,e.u)]=find(p,e.v)});if(t==2)vis.add(s.start);
+const c=[];g.e.forEach((e,i)=>{if(s.sel.includes(i))return;if(t==2?vis.has(e.u)!=vis.has(e.v):find(p,e.u)!=find(p,e.v))c.push(i)});
+return{c,vis,p,min:Math.min(...c.map(i=>g.e[i].w))}}
+function pick(i){const t=tab,s=st[t],g=s.g;if(s.sel.length==g.n-1)return;const k=cand(t),e=g.e[i];s.bad=s.hint=null;
+const nm=x=>L[x.u]+"–"+L[x.v];
+if(s.sel.includes(i))s.msg=["Esa arista ya está en el árbol.",0];
+else if(k.c.includes(i)&&e.w==k.min){s.sel.push(i);s.msg=[`Bien: elegiste ${nm(e)} (peso ${e.w}).`,1];
+ if(s.sel.length==g.n-1)s.msg=[`¡Árbol de expansión mínima completo! Peso total = <b>${s.sel.reduce((a,j)=>a+g.e[j].w,0)}</b> 🎉`,1]}
+else{s.bad=i;let r;
+ if(!k.c.includes(i))r=t==2?(k.vis.has(e.u)&&k.vis.has(e.v)?"ambos extremos ya están en el árbol, formaría un ciclo":"no toca ningún nodo del árbol actual"):"formaría un ciclo con las aristas ya elegidas";
+ else r=`hay una arista más barata disponible (peso ${k.min})`;
+ s.msg=[`${nm(e)} (peso ${e.w}) no es válida: ${r}.`,0]}
+render()}
+function hint(){const s=st[tab];if(s.sel.length==s.g.n-1)return;const k=cand(tab);s.bad=null;s.hint=k.c.find(i=>s.g.e[i].w==k.min);render()}
+function reset(){const s=st[tab];s.sel=[];s.msg=s.bad=s.hint=null;render()}
+function mst(t){const s=st[t],g=s.g,k=s.sel.length<g.n-1?cand(t):{vis:new Set(),p:[...Array(g.n).keys()]};
+const cls={},nd={};s.sel.forEach(i=>cls[i]="sel");if(s.bad!=null)cls[s.bad]="bad";if(s.hint!=null)cls[s.hint]="hint";
+if(t==2){s.sel.forEach(i=>{nd[g.e[i].u]=nd[g.e[i].v]="in"});nd[s.start]="in st"}
+const tot=s.sel.reduce((a,j)=>a+g.e[j].w,0);
+let extra="";
+if(t==3){const o=g.e.map((e,i)=>i).sort((a,b)=>g.e[a].w-g.e[b].w||a-b);
+ const p=[...Array(g.n).keys()];extra='<p class="mu" style="margin-bottom:2px">Aristas ordenadas por peso (verde = elegida, tachada = formaría ciclo):</p>'+o.map(i=>{const e=g.e[i],a=find(k.p,e.u)==find(k.p,e.v),c=s.sel.includes(i)?"s":a?"c":"";return`<span class="chip ${c}">${L[e.u]}–${L[e.v]} (${e.w})</span>`}).join("")}
+const info=t==2?`Empieza en <b>${L[s.start]}</b>. Árbol actual: {${[...k.vis].sort().map(i=>L[i]).join(", ")||L[s.start]}}`:"Construye el árbol eligiendo siempre la arista más barata que no forme ciclo.";
+const m=s.msg?`<div id="msg" class="msg ${s.msg[1]?"ok":"er"}">${s.msg[0]}</div>`:'<div id="msg" class="msg"></div>';
+return`<div class="row"><div class="card">${svg(g,{cls,nd,click:"pick"})}</div><div class="card"><h3>Algoritmo de ${t==2?"Prim":"Kruskal"}</h3><p>Haz clic sobre las aristas del grafo en el orden en que el algoritmo las elegiría. ${info}.</p><p><b>Aristas:</b> ${s.sel.length}/${g.n-1} · <b>Peso acumulado:</b> ${tot}</p>${extra}<div class="btns"><button onclick="hint()">💡 Pista</button><button class="sec" onclick="reset()">Reiniciar</button></div>${m}<p class="mu">Si hay empate de pesos, cualquiera de las aristas empatadas es válida.</p></div></div>`}
+function v2(){return mst(2)}function v3(){return mst(3)}
+go(0);
+</script></body></html>
