@@ -32,6 +32,10 @@ input.ok{border-color:var(--ok);background:var(--okbg)}input.er{border-color:var
 .chip{display:inline-block;border:1px solid var(--bd);border-radius:14px;padding:1px 9px;margin:2px;font-size:13px}
 .chip.s{background:var(--okbg);border-color:var(--ok)}.chip.c{text-decoration:line-through;color:var(--mu)}
 .mu{color:var(--mu);font-size:13px}
+.dr{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:4px 6px;border-radius:8px}.dr.ok{background:var(--okbg)}.dr.er{outline:1.5px solid var(--er)}
+.vb{width:38px;height:34px;border:2px solid var(--ac);border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.an{display:flex;border:1.5px solid var(--mu);border-radius:4px;background:var(--card)}.an input{width:34px;border:0;border-right:1.5px solid #e08a1e;border-radius:0;text-align:center;padding:5px 2px;background:transparent}.an input:last-child{border-right:0}
+.sv{padding-left:12px;margin:-2px 0}button.sm{padding:1px 9px}
 </style></head><body><div class="w">
 <h1>Práctica de grafos</h1><p class="s">Estructuras de datos · Cada ejercicio genera un grafo nuevo al azar.</p>
 <div class="tb"><button onclick="go(0)">1. Representación</button><button onclick="go(1)">2. Recorridos BFS / DFS</button><button onclick="go(2)">3. Prim</button><button onclick="go(3)">4. Kruskal</button></div>
@@ -45,7 +49,7 @@ const add=(a,b)=>{if(a==b)return;const k=Math.min(a,b)+"-"+Math.max(a,b);if(has.
 for(let i=1;i<n;i++)add(i,R(i));let x=Math.floor(n/2)+R(3);while(x--)add(R(n),R(n));
 return{n,dir,wt,e}}
 function newEx(){const t=tab,c=cfg[t];
-if(t==0)st[0]={g:gen(c.n,c.dir,c.wt)};
+if(t==0){const g=gen(c.n,c.dir,c.wt);st[0]={g,ch:Array.from({length:g.n},()=>[])}};
 if(t==1)st[1]={g:gen(c.n,c.dir,false),start:R(c.n)};
 if(t>1)st[t]={g:gen(c.n,false,true),start:R(c.n),sel:[],msg:null}}
 function go(t){tab=t;if(!st[t])newEx();render()}
@@ -61,7 +65,7 @@ for(let i=0;i<g.n;i++){const[x,y]=P(i);s+=`<g class="nd ${(o.nd&&o.nd[i])||""}">
 return s+"</svg>"}
 function ctl(t){const c=cfg[t];let h='<div class="ctl"><label>Nodos <select onchange="cf(\'n\',+this.value)">'+[4,5,6,7,8,9,10].map(n=>`<option ${n==c.n?"selected":""}>${n}</option>`).join("")+"</select></label>";
 if(t<2)h+=`<label>Tipo <select onchange="cf('dir',this.value=='d')"><option value="d" ${c.dir?"selected":""}>Dirigido</option><option value="u" ${c.dir?"":"selected"}>No dirigido</option></select></label>`;
-if(t==0)h+=`<label><input type="checkbox" ${c.wt?"checked":""} onchange="cf('wt',this.checked)"> Con pesos</label><label>Representar como <select onchange="cf('mode',this.value)"><option value="mat" ${c.mode=="mat"?"selected":""}>Matriz de adyacencia</option><option value="lst" ${c.mode=="lst"?"selected":""}>Lista de adyacencia</option></select></label>`;
+if(t==0)h+=`<label><input type="checkbox" ${c.wt?"checked":""} onchange="cf('wt',this.checked)"> Con pesos</label><label>Representar como <select onchange="cf('mode',this.value)"><option value="mat" ${c.mode=="mat"?"selected":""}>Matriz de adyacencia</option><option value="lst" ${c.mode=="lst"?"selected":""}>Directorio de nodos (listas)</option></select></label>`;
 if(t==1)h+=`<label>Recorrido <select onchange="cf('type',this.value)"><option value="bfs" ${c.type=="bfs"?"selected":""}>Amplitud (BFS)</option><option value="dfs" ${c.type=="dfs"?"selected":""}>Profundidad (DFS)</option></select></label>`;
 return h+'<button class="sec" onclick="newEx();render()">↻ Nuevo grafo</button></div>'}
 function render(){document.querySelectorAll(".tb button").forEach((b,i)=>b.classList.toggle("on",i==tab));$("app").innerHTML=ctl(tab)+[v0,v1,v2,v3][tab]()}
@@ -70,16 +74,20 @@ function matExp(g){const M=Array.from({length:g.n},()=>Array(g.n).fill(0));g.e.f
 function v0(){const g=st[0].g,c=cfg[0];let f;
 if(c.mode=="mat"){f="<p>Completa la <b>matriz de adyacencia</b>"+(g.wt?" (pon el peso, 0 si no hay arista)":" (1 si hay arista, 0 si no)")+". Fila = origen, columna = destino.</p><table><tr><th></th>"+[...L.slice(0,g.n)].map(x=>`<th>${x}</th>`).join("")+"</tr>";
 for(let i=0;i<g.n;i++){f+=`<tr><th>${L[i]}</th>`;for(let j=0;j<g.n;j++)f+=`<td><input id="m${i}_${j}" inputmode="numeric"></td>`;f+="</tr>"}f+="</table>"}
-else{f="<p>Escribe la <b>lista de adyacencia</b> de cada nodo, vecinos en orden alfabético"+(g.wt?" con su peso, p. ej. <code>B:3, D:5</code>":", p. ej. <code>B, D</code>")+". Deja vacío si no tiene vecinos.</p>";
-for(let i=0;i<g.n;i++)f+=`<div class="lr"><b>${L[i]}</b>→<input id="l${i}" autocomplete="off"></div>`}
-return`<div class="row"><div class="card">${svg(g)}</div><div class="card"><h3>${c.mode=="mat"?"Matriz":"Lista"} de adyacencia</h3>${f}<div class="btns"><button onclick="chk0()">Comprobar</button><button class="sec" onclick="sol0()">Ver solución</button></div><div id="msg" class="msg"></div></div></div>`}
+else f=dirHtml(g);
+return`<div class="row"><div class="card">${svg(g)}</div><div class="card"><h3>${c.mode=="mat"?"Matriz de adyacencia":"Directorio de nodos (listas)"}</h3>${f}<div class="btns"><button onclick="chk0()">Comprobar</button><button class="sec" onclick="sol0()">Ver solución</button></div><div id="msg" class="msg"></div></div></div>`}
+function dirHtml(g){const ch=st[0].ch;let f='<p>Arma el <b>directorio de nodos</b>: la columna de vértices (enlazados por <i>sigV</i>) y, para cada uno, su <i>subListaArcos</i>. Cada nodo de arco guarda el <b>destino</b>'+(g.wt?' y la <b>distancia</b>':'')+' y apunta al siguiente con <i>sigA</i>. Usa ＋ para agregar arcos, en orden alfabético.</p><div class="mu">grafo ⇒</div>';
+for(let i=0;i<g.n;i++){f+=`<div class="dr"><div class="vb">${L[i]}</div><span class="mu">subListaArcos →</span>`;
+ch[i].forEach((a,j)=>{f+=`<div class="an"><input value="${a.d}" maxlength="1" placeholder="dest" oninput="setA(${i},${j},'d',this.value)">${g.wt?`<input value="${a.w}" placeholder="dist" inputmode="numeric" oninput="setA(${i},${j},'w',this.value)">`:""}</div><span class="mu">sigA →</span>`});
+f+=`<span class="mu">∅</span><button class="sec sm" onclick="addA(${i})">＋</button><button class="sec sm" onclick="delA(${i})">−</button></div><div class="mu sv">↓ sigV${i==g.n-1?" = ∅":""}</div>`}return f}
+function setA(i,j,k,v){st[0].ch[i][j][k]=v}function addA(i){st[0].ch[i].push({d:"",w:""});render()}function delA(i){st[0].ch[i].pop();render()}
 function tok(g,s){return new Set([...s.toUpperCase().matchAll(/([A-Z])\s*[:(]?\s*(\d*)/g)].map(m=>m[1]+(g.wt?m[2]:"")))}
 function chk0(){const g=st[0].g;let bad=0;
 if(cfg[0].mode=="mat"){const M=matExp(g);for(let i=0;i<g.n;i++)for(let j=0;j<g.n;j++){const x=$(`m${i}_${j}`),v=x.value.trim()==""?0:+x.value,ok=v===M[i][j];x.className=ok?"ok":"er";if(!ok)bad++}}
-else{const A=adj(g);for(let i=0;i<g.n;i++){const x=$("l"+i),a=tok(g,x.value),b=new Set(A[i].map(([v,w])=>L[v]+(g.wt?w:""))),ok=a.size==b.size&&[...b].every(k=>a.has(k));x.className=ok?"ok":"er";if(!ok)bad++}}
+else{const A=adj(g),ch=st[0].ch,rows=document.querySelectorAll(".dr");let ord=0;for(let i=0;i<g.n;i++){const a=ch[i].map(x=>x.d.trim().toUpperCase()+(g.wt?x.w.trim():"")),b=A[i].map(([v,w])=>L[v]+(g.wt?w:"")),ok=a.length==b.length&&b.every(k=>a.includes(k));if(ok&&a.join()!=b.join())ord++;rows[i].className="dr "+(ok?"ok":"er");if(!ok)bad++}if(!bad&&ord)return say(`Todos los arcos están, pero en ${ord} lista(s) no van en orden alfabético.`,1)}
 bad?say(`Hay <b>${bad}</b> ${cfg[0].mode=="mat"?"celda(s)":"fila(s)"} incorrecta(s), marcadas en rojo. ${g.dir?"Recuerda: en un grafo dirigido solo cuentan las aristas que salen del nodo.":"Recuerda: en un grafo no dirigido la arista cuenta en ambos sentidos."}`,0):say("¡Perfecto! Todo correcto 🎉",1)}
 function sol0(){const g=st[0].g;if(cfg[0].mode=="mat"){const M=matExp(g);M.forEach((r,i)=>r.forEach((v,j)=>{const x=$(`m${i}_${j}`);x.value=v;x.className=""}))}
-else adj(g).forEach((a,i)=>{const x=$("l"+i);x.value=a.map(([v,w])=>L[v]+(g.wt?":"+w:"")).join(", ");x.className=""})}
+else{st[0].ch=adj(g).map(a=>a.map(([v,w])=>({d:L[v],w:String(w)})));render()}}
 /* 2. Recorridos */
 function trav(g,s,t){const A=adj(g),seen=new Set([s]),out=[];
 if(t=="bfs"){const q=[s];while(q.length){const u=q.shift();out.push(u);A[u].forEach(([v])=>{if(!seen.has(v)){seen.add(v);q.push(v)}})}}
